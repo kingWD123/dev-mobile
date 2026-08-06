@@ -13,7 +13,6 @@ class RideDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final muted = AppColors.muted(context);
-    final arrival = ride.departure.add(ride.duration);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Détail du trajet')),
@@ -45,7 +44,7 @@ class RideDetailScreen extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(ride.from, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15.5)),
                       const SizedBox(height: 30),
-                      Text(_time(arrival), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: muted)),
+                      Text(_time(ride.departure.add(ride.duration)), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: muted)),
                       const SizedBox(height: 2),
                       Text(ride.to, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15.5)),
                     ],

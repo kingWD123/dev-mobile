@@ -78,13 +78,25 @@ class _PublishRideScreenState extends State<PublishRideScreen> {
                 Row(
                   children: [
                     IconButton(
-                      onPressed: seats > 1 ? () => setState(() => seats--) : null,
+                      onPressed: () {
+                        if (seats > 1) {
+                          setState(() {
+                            seats = seats - 1;
+                          });
+                        }
+                      },
                       icon: const Icon(Icons.remove_circle_outline),
                       color: AppColors.primary,
                     ),
                     Text('$seats', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
                     IconButton(
-                      onPressed: seats < 6 ? () => setState(() => seats++) : null,
+                      onPressed: () {
+                        if (seats < 6) {
+                          setState(() {
+                            seats = seats + 1;
+                          });
+                        }
+                      },
                       icon: const Icon(Icons.add_circle_outline),
                       color: AppColors.primary,
                     ),

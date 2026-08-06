@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Marketing-style banner used to promote the carpooling idea with a real
-/// photo, distinct from the flat illustration used in empty states.
 class PromoBanner extends StatelessWidget {
   final String title;
   final String subtitle;

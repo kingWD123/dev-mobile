@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
-/// A small hand-drawn, original flat-style car illustration — adds warmth to
-/// hero and empty-state moments without pulling in external image assets.
 class CarIllustration extends StatelessWidget {
   final double width;
   final Color? bodyColor;

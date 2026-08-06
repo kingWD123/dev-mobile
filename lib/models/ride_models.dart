@@ -59,7 +59,6 @@ class Trip {
   const Trip({required this.ride, required this.status, this.asDriver = false});
 }
 
-// Real coordinates so the map preview shows an authentic route.
 class Cities {
   static const abidjanPlateau = LatLng(5.3097, -4.0125);
   static const abidjanCocody = LatLng(5.3400, -3.9800);

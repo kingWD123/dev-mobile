@@ -6,7 +6,7 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final muted = AppColors.muted(context);
+    final mutedColor = AppColors.muted(context);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Profil')),
@@ -27,7 +27,7 @@ class ProfileScreen extends StatelessWidget {
                 const SizedBox(height: 12),
                 const Text('Soro Konan', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 2),
-                Text('Membre depuis janvier 2026', style: TextStyle(fontSize: 12.5, color: muted)),
+                Text('Membre depuis janvier 2026', style: TextStyle(fontSize: 12.5, color: mutedColor)),
                 const SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -35,7 +35,7 @@ class ProfileScreen extends StatelessWidget {
                     const Icon(Icons.star, size: 15, color: AppColors.rating),
                     const SizedBox(width: 4),
                     const Text('4.8', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
-                    Text('  ·  27 trajets', style: TextStyle(fontSize: 13, color: muted)),
+                    Text('  ·  27 trajets', style: TextStyle(fontSize: 13, color: mutedColor)),
                   ],
                 ),
               ],

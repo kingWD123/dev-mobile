@@ -90,7 +90,6 @@ class _RideCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final muted = AppColors.muted(context);
-    final arrival = ride.departure.add(ride.duration);
 
     return InkWell(
       onTap: () {
@@ -126,7 +125,7 @@ class _RideCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                Text(_time(arrival), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                Text(_time(ride.departure.add(ride.duration)), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
               ],
             ),
             const SizedBox(height: 4),

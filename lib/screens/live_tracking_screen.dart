@@ -122,8 +122,6 @@ class _RoundButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
           shape: BoxShape.circle,
-          // Floating over map imagery needs real contrast, unlike the flat
-          // bordered cards used elsewhere — a soft shadow instead of a hairline.
           boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.18), blurRadius: 10, offset: const Offset(0, 3))],
         ),
         child: Icon(icon, size: 19, color: AppColors.ink(context)),

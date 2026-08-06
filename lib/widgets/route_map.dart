@@ -6,11 +6,6 @@ import 'package:latlong2/latlong.dart';
 
 import '../theme/app_theme.dart';
 
-/// A real OpenStreetMap route preview between two points, no API key needed.
-///
-/// Set [interactive] to false for small, gesture-free thumbnails (ride
-/// cards, ride detail) and to true for a pannable/zoomable full map (live
-/// tracking).
 class RouteMap extends StatelessWidget {
   final LatLng origin;
   final LatLng destination;
@@ -36,7 +31,6 @@ class RouteMap extends StatelessWidget {
         (origin.longitude + destination.longitude) / 2,
       );
 
-  /// Rough zoom level that keeps both points comfortably in frame.
   double get _zoom {
     final span = math.max(
       (origin.latitude - destination.latitude).abs(),

@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Design tokens. Keep the palette small on purpose: one brand color for
-/// actions/emphasis, one reserved color for ratings, and a neutral ink/surface
-/// scale for everything else. Screens should read colors from here rather
-/// than inlining new ones.
 class AppColors {
   static const primary = Color(0xFF0E8C6F);
   static const primaryDark = Color(0xFF45BFA0);
@@ -24,7 +20,6 @@ class AppColors {
   static const chipDark = Color(0xFF232629);
   static const borderDark = Color(0xFF2B2E32);
 
-  /// Flat card: hairline border, no drop shadow.
   static BoxDecoration card(BuildContext context, {double radius = 16}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return BoxDecoration(
@@ -34,7 +29,6 @@ class AppColors {
     );
   }
 
-  /// Neutral filled pill/badge — the default for icon badges and chips.
   static BoxDecoration flatField(BuildContext context, {double radius = 14}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return BoxDecoration(
