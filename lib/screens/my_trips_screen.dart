@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/ride_models.dart';
 import '../theme/app_theme.dart';
+import '../widgets/car_illustration.dart';
 import 'live_tracking_screen.dart';
 import 'ride_detail_screen.dart';
 
@@ -53,7 +54,14 @@ class _TripList extends StatelessWidget {
 
     if (trips.isEmpty) {
       return Center(
-        child: Text(emptyText, style: TextStyle(color: muted, fontSize: 13.5)),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CarIllustration(width: 140, bodyColor: muted.withValues(alpha: 0.45)),
+            const SizedBox(height: 16),
+            Text(emptyText, style: TextStyle(color: muted, fontSize: 13.5)),
+          ],
+        ),
       );
     }
 
