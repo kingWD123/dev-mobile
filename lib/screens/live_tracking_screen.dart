@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/ride_models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/driver_avatar.dart';
-import '../widgets/stylized_map.dart';
+import '../widgets/route_map.dart';
 
 class LiveTrackingScreen extends StatelessWidget {
   final Ride ride;
@@ -10,14 +10,20 @@ class LiveTrackingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final muted = isDark ? AppColors.mutedDark : AppColors.mutedLight;
+    final muted = AppColors.muted(context);
 
     return Scaffold(
       body: Stack(
         children: [
           Positioned.fill(
-            child: StylizedMap(height: double.infinity, showCar: true, routeProgress: 0.42, borderRadius: BorderRadius.zero),
+            child: RouteMap(
+              origin: ride.fromLatLng,
+              destination: ride.toLatLng,
+              interactive: true,
+              showCar: true,
+              routeProgress: 0.42,
+              borderRadius: BorderRadius.zero,
+            ),
           ),
           SafeArea(
             child: Padding(
@@ -38,7 +44,11 @@ class LiveTrackingScreen extends StatelessWidget {
               child: Container(
                 margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                 padding: const EdgeInsets.all(18),
-                decoration: AppColors.card(context, radius: 24),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).brightness == Brightness.dark ? AppColors.surfaceDark : AppColors.surfaceLight,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.16), blurRadius: 24, offset: const Offset(0, 8))],
+                ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -102,14 +112,21 @@ class _RoundButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       customBorder: const CircleBorder(),
       child: Container(
         width: 40,
         height: 40,
-        decoration: AppColors.card(context, radius: 20),
-        child: Icon(icon, size: 19),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+          shape: BoxShape.circle,
+          // Floating over map imagery needs real contrast, unlike the flat
+          // bordered cards used elsewhere — a soft shadow instead of a hairline.
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.18), blurRadius: 10, offset: const Offset(0, 3))],
+        ),
+        child: Icon(icon, size: 19, color: AppColors.ink(context)),
       ),
     );
   }

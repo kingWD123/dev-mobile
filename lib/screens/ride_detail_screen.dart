@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/ride_models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/driver_avatar.dart';
-import '../widgets/stylized_map.dart';
+import '../widgets/route_map.dart';
 
 class RideDetailScreen extends StatelessWidget {
   final Ride ride;
@@ -20,7 +20,7 @@ class RideDetailScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
         children: [
-          const StylizedMap(height: 170),
+          RouteMap(origin: ride.fromLatLng, destination: ride.toLatLng, height: 170),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(20),
