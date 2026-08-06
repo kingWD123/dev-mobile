@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/ride_models.dart';
 import '../theme/app_theme.dart';
+import 'live_tracking_screen.dart';
 import 'ride_detail_screen.dart';
 
 class MyTripsScreen extends StatefulWidget {
@@ -85,38 +86,62 @@ class _TripCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: AppColors.card(context, radius: 18),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 46,
-              height: 46,
-              decoration: BoxDecoration(
-                color: (trip.status == TripStatus.past ? muted : AppColors.primary).withValues(alpha: 0.14),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                trip.asDriver ? Icons.drive_eta_outlined : Icons.directions_car_outlined,
-                color: trip.status == TripStatus.past ? muted : AppColors.primary,
-                size: 22,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('${ride.from} → ${ride.to}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14), overflow: TextOverflow.ellipsis),
-                  const SizedBox(height: 3),
-                  Text(
-                    '${_date(ride.departure)} · ${trip.asDriver ? "Conducteur" : "Avec ${ride.driver.name}"}',
-                    style: TextStyle(fontSize: 12, color: muted),
-                    overflow: TextOverflow.ellipsis,
+            Row(
+              children: [
+                Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    color: (trip.status == TripStatus.past ? muted : AppColors.primary).withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                ],
-              ),
+                  child: Icon(
+                    trip.asDriver ? Icons.drive_eta_outlined : Icons.directions_car_outlined,
+                    color: trip.status == TripStatus.past ? muted : AppColors.primary,
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('${ride.from} → ${ride.to}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14), overflow: TextOverflow.ellipsis),
+                      const SizedBox(height: 3),
+                      Text(
+                        '${_date(ride.departure)} · ${trip.asDriver ? "Conducteur" : "Avec ${ride.driver.name}"}',
+                        style: TextStyle(fontSize: 12, color: muted),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text('${ride.price.toInt()} F', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5, color: AppColors.primary)),
+              ],
             ),
-            const SizedBox(width: 8),
-            Text('${ride.price.toInt()} F', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5, color: AppColors.primary)),
+            if (trip.status == TripStatus.upcoming) ...[
+              const SizedBox(height: 12),
+              Divider(height: 1, color: Theme.of(context).dividerColor),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => LiveTrackingScreen(ride: ride))),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    side: const BorderSide(color: AppColors.primary),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  icon: const Icon(Icons.navigation_outlined, size: 16),
+                  label: const Text('Suivre en direct', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5)),
+                ),
+              ),
+            ],
           ],
         ),
       ),
