@@ -46,3 +46,7 @@ app.*.map.json
 
 # Local-only doc, not meant to be pushed
 /DOC_APP_EXPLICATION.md
+
+# Document de presentation, garde en local
+/Presentation_du_projet.pdf
+/generer_presentation.py
