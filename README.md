@@ -1,4 +1,4 @@
-# Covoiturage — l'application de trajets partagés du Sénégal
+# Covoiturage
 
 Application mobile Flutter qui met en relation des conducteurs ayant des places
 libres et des passagers qui font le même trajet, entre les 14 régions
@@ -13,17 +13,17 @@ Projet réalisé dans le cadre du cours de développement mobile (DIC2).
 Chaque jour, des milliers de voitures relient Dakar aux régions avec deux ou
 trois sièges vides, pendant que des voyageurs attendent une place dans un
 transport en commun. L'offre et la demande existent des deux côtés, mais elles
-n'ont aucun point de rendez-vous outillé : aujourd'hui l'essentiel du
-covoiturage sénégalais se négocie dans des groupes WhatsApp, sans recherche,
-sans historique, et sans moyen de savoir à qui on a affaire.
+n'ont aucun point de rendez-vous outillé. Aujourd'hui l'essentiel du covoiturage
+sénégalais se négocie dans des groupes WhatsApp, sans recherche, sans
+historique, et sans moyen de savoir à qui on a affaire.
 
 L'application répond à trois manques précis :
 
 | Manque | Réponse apportée |
 | --- | --- |
-| **La rencontre** — aucune place de marché commune | Recherche par région, date et nombre de passagers, trajets publiés visibles en temps réel |
-| **La confiance** — on ne sait pas qui conduit | Profil conducteur, véhicule, badge d'identité vérifiée, messagerie intégrée, suivi de trajet partageable |
-| **Le gaspillage** — sièges vides et routes saturées | Un siège vide devient une place réservable, le coût du trajet est partagé |
+| La rencontre, faute de place de marché commune | Recherche par région, date et nombre de passagers, trajets publiés visibles en temps réel |
+| La confiance, parce qu'on ne sait pas qui conduit | Profil conducteur, véhicule, badge d'identité vérifiée, messagerie intégrée, suivi de trajet partageable |
+| Le gaspillage des sièges vides sur des routes saturées | Un siège vide devient une place réservable, le coût du trajet est partagé |
 
 ---
 
@@ -34,40 +34,40 @@ L'application s'organise autour de cinq onglets.
 ### Rechercher
 
 Choix de la région de départ et d'arrivée dans une liste fermée (les 14 régions
-administratives), de la date et du nombre de passagers. Le choix est
-volontairement fermé plutôt qu'en saisie libre : les coordonnées sont donc
-toujours connues, aucun géocodeur externe n'est nécessaire, et un trajet publié
-vers « Thiès » est toujours retrouvé par une recherche vers « Thiès ». La page
-d'accueil affiche en plus les derniers trajets publiés, mis à jour en direct.
+administratives), de la date et du nombre de passagers. La liste fermée remplace
+la saisie libre pour deux raisons : les coordonnées sont toujours connues, donc
+aucun géocodeur externe n'est nécessaire, et un trajet publié vers « Thiès » est
+toujours retrouvé par une recherche vers « Thiès ». La page d'accueil affiche en
+plus les derniers trajets publiés, mis à jour en direct.
 
 ### Résultats et détail du trajet
 
 Chaque trajet affiche l'heure de départ, la durée estimée, le prix en FCFA, les
 places restantes et le conducteur. Le détail présente en plus l'itinéraire tracé
 sur une carte OpenStreetMap, le véhicule, les conditions incluses (bagages,
-prise en charge, annulation) et le mode de réservation — instantanée ou soumise
-à confirmation du conducteur.
+prise en charge, annulation) et le mode de réservation, instantané ou soumis à
+confirmation du conducteur.
 
-La réservation décrémente les places **dans une transaction Firestore** : deux
-passagers ne peuvent pas obtenir le même dernier siège. Elle déclenche aussi, en
-un seul geste, la notification du conducteur et l'ouverture automatique d'une
-conversation entre les deux parties — aucun échange de numéro n'est nécessaire.
+La réservation décrémente les places dans une transaction Firestore, ce qui
+empêche deux passagers d'obtenir le même dernier siège. Elle déclenche aussi la
+notification du conducteur et l'ouverture automatique d'une conversation entre
+les deux parties, sans que personne ait à échanger son numéro.
 
 ### Publier un trajet
 
 Itinéraire, date et heure, nombre de places, prix par passager et véhicule. La
 durée est estimée automatiquement à partir de la distance orthodromique entre
-les deux chefs-lieux (55 km/h de moyenne). Le conducteur choisit s'il accepte la
-réservation instantanée ou s'il veut valider chaque demande.
+les deux chefs-lieux, sur une base de 55 km/h de moyenne. Le conducteur choisit
+s'il accepte la réservation instantanée ou s'il veut valider chaque demande.
 
 ### Mes trajets
 
-Un seul écran pour les deux rôles — on est rarement uniquement conducteur ou
-uniquement passager. Les trajets publiés et les trajets réservés sont fusionnés
-puis répartis entre « À venir » et « Passés ». Depuis un trajet à venir, un
-bouton ouvre le **suivi en direct** : progression sur la carte, statuts *en
-attente du départ → en route → arrivé*, appel du conducteur en un geste, et
-partage du trajet à un proche.
+Un seul écran pour les deux rôles, puisqu'on est rarement uniquement conducteur
+ou uniquement passager. Les trajets publiés et les trajets réservés sont
+fusionnés puis répartis entre « À venir » et « Passés ». Depuis un trajet à
+venir, un bouton ouvre le suivi en direct : progression sur la carte, statuts
+« en attente du départ », « en route » et « arrivé », appel du conducteur en un
+geste, et partage du trajet à un proche.
 
 ### Messages et notifications
 
@@ -89,11 +89,11 @@ comme conducteur et comme passager.
 | --- | --- |
 | Framework | Flutter / Dart (`sdk: ^3.12.2`) |
 | Interface | Material 3, thèmes clair et sombre suivant le réglage système |
-| Backend | Firebase — Cloud Firestore (temps réel) et Firebase Authentication |
+| Backend | Firebase, avec Cloud Firestore en temps réel et Firebase Authentication |
 | Cartographie | `flutter_map` sur les tuiles OpenStreetMap, `latlong2` pour la géométrie |
-| Divers | `url_launcher` (appel téléphonique), `share_plus` (partage de trajet) |
+| Divers | `url_launcher` pour l'appel téléphonique, `share_plus` pour le partage de trajet |
 
-Aucune API payante n'est utilisée : la cartographie repose sur OpenStreetMap et
+Aucune API payante n'est utilisée. La cartographie repose sur OpenStreetMap et
 le référentiel des régions est embarqué dans l'application.
 
 ---
@@ -128,16 +128,15 @@ lib/
     ├── driver_avatar.dart · car_illustration.dart · promo_banner.dart
 ```
 
-Le principe est simple : **les écrans ne parlent jamais directement à
-Firestore**. Ils consomment les `Stream` exposés par les repositories de
-`lib/services/`, ce qui garde la logique de données concentrée en un seul
-endroit.
+Les écrans ne parlent jamais directement à Firestore. Ils consomment les
+`Stream` exposés par les repositories de `lib/services/`, ce qui garde la
+logique de données concentrée en un seul endroit.
 
 ---
 
 ## Modèle de données Firestore
 
-### `rides` — les trajets publiés
+### `rides`, les trajets publiés
 
 | Champ | Type | Remarque |
 | --- | --- | --- |
@@ -151,12 +150,12 @@ endroit.
 | `driverUid` / `driverName` / `driverCar` | `string` | conducteur |
 | `createdAt` | `timestamp` | sert au tri des listes |
 
-### `users/{uid}` — le profil
+### `users/{uid}`, le profil
 
 `name`, `phone`, `car`, `smokeFree`, `petsAllowed`, `music`, `readReceipts`,
 `verified`, `verificationRequested`.
 
-### `bookings` — les réservations
+### `bookings`, les réservations
 
 `uid` (passager), `rideId`, `from`, `to`, `departure`, `price`, `driverUid`,
 `driverName`, `createdAt`.
@@ -181,8 +180,8 @@ par paire d'utilisateurs.
 
 ### Prérequis
 
-- Flutter (canal stable) et le SDK Android installés — `flutter doctor` doit être vert
-- Node.js 18+, uniquement pour le script de données de démonstration
+- Flutter (canal stable) et le SDK Android installés, avec un `flutter doctor` vert
+- Node.js 18 ou plus, uniquement pour le script de données de démonstration
 
 ### Lancer l'application
 
@@ -220,12 +219,12 @@ Cette commande régénère `lib/firebase_options.dart` et
 
 Côté console Firebase, deux réglages sont nécessaires.
 
-**1. Authentication → Sign-in method → Anonymous → Enable.** L'application ouvre
-une session anonyme au démarrage et s'en sert comme identité de l'utilisateur.
-Sans ce fournisseur activé, `AuthService.uid` reste `null` et les écrans Mes
-trajets, Messages, Notifications et Profil restent vides.
+**1. Authentication, puis Sign-in method, puis Anonymous, puis Enable.**
+L'application ouvre une session anonyme au démarrage et s'en sert comme identité
+de l'utilisateur. Sans ce fournisseur activé, `AuthService.uid` reste `null` et
+les écrans Mes trajets, Messages, Notifications et Profil restent vides.
 
-**2. Firestore → index composites.** Quatre requêtes combinent un filtre et un
+**2. Firestore, les index composites.** Quatre requêtes combinent un filtre et un
 tri sur un autre champ, et réclament donc un index :
 
 | Collection | Filtre | Tri |
@@ -236,7 +235,7 @@ tri sur un autre champ, et réclament donc un index :
 | `conversations` | `participantUids array-contains` | `lastMessageAt` desc |
 
 Au premier lancement, Firestore renvoie dans la console un lien direct de
-création pour chacun — il suffit de le suivre.
+création pour chacun, qu'il suffit de suivre.
 
 ---
 
@@ -244,14 +243,14 @@ création pour chacun — il suffit de le suivre.
 
 `tool/seed_demo_data.js` remplit Firestore avec un jeu de données présentable :
 6 conducteurs et 15 trajets répartis sur le pays, aux prix réalistes, datés
-relativement à aujourd'hui pour rester toujours « à venir ».
+relativement à aujourd'hui pour rester toujours à venir.
 
 ```bash
 node tool/seed_demo_data.js
 ```
 
 Le script passe par l'API REST de Firestore et n'a besoin d'aucun compte de
-service : il se connecte anonymement, comme le fait l'application.
+service. Il se connecte anonymement, comme le fait l'application.
 
 | Commande | Effet |
 | --- | --- |
@@ -276,12 +275,12 @@ match /{document=**} {
 }
 ```
 
-Une seule barrière d'authentification, sans contrôle de propriété document par
-document : c'est un choix assumé, parce que l'application écrit légitimement sur
-les documents d'autres utilisateurs (notifier un conducteur, ouvrir une
-conversation).
+Il n'y a qu'une barrière d'authentification, sans contrôle de propriété document
+par document, parce que l'application écrit légitimement sur les documents
+d'autres utilisateurs quand elle notifie un conducteur ou ouvre une
+conversation.
 
-Ces règles doivent être déployées pour être actives — tant qu'elles ne le sont
+Ces règles doivent être déployées pour être actives. Tant qu'elles ne le sont
 pas, la base reste dans le mode test ouvert créé par défaut :
 
 ```bash
@@ -292,14 +291,14 @@ firebase deploy --only firestore:rules
 
 ## Limites connues et suite
 
-- **Le suivi en direct est simulé** : la progression est interpolée entre
-  l'heure de départ et la durée estimée, il n'y a pas encore de remontée de
-  position GPS réelle.
-- **L'itinéraire est une ligne directe** entre les deux chefs-lieux, pas un
-  tracé routier calculé.
-- **La vérification d'identité** enregistre la demande mais n'inclut pas encore
-  de contrôle de pièce justificative.
-- **Pas encore de paiement** : le prix est affiché et convenu entre les
+- Le suivi en direct est simulé. La progression est interpolée entre l'heure de
+  départ et la durée estimée, il n'y a pas encore de remontée de position GPS
+  réelle.
+- L'itinéraire est une ligne directe entre les deux chefs-lieux, pas un tracé
+  routier calculé.
+- La vérification d'identité enregistre la demande mais n'inclut pas encore de
+  contrôle de pièce justificative.
+- Il n'y a pas encore de paiement. Le prix est affiché et convenu entre les
   utilisateurs. L'intégration de Wave et Orange Money est la première étape de
   la suite, devant la notation mutuelle après trajet et les trajets récurrents
   pour les navetteurs.
