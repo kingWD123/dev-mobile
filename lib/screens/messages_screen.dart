@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/message_models.dart';
+import '../services/chat_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/driver_avatar.dart';
 import 'chat_screen.dart';
@@ -9,6 +9,7 @@ class MessagesScreen extends StatelessWidget {
 
   String _time(DateTime t) {
     final diff = DateTime.now().difference(t);
+    if (diff.inMinutes < 1) return 'maintenant';
     if (diff.inMinutes < 60) return '${diff.inMinutes} min';
     if (diff.inHours < 24) return '${diff.inHours} h';
     return '${diff.inDays} j';
@@ -20,56 +21,66 @@ class MessagesScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Messages')),
-      body: ListView.separated(
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        itemCount: mockConversations.length,
-        separatorBuilder: (_, _) => Divider(height: 1, indent: 84, color: Theme.of(context).dividerColor),
-        itemBuilder: (context, i) {
-          final convo = mockConversations[i];
-          return InkWell(
-            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ChatScreen(conversation: convo))),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              child: Row(
-                children: [
-                  DriverAvatar(driver: convo.contact, size: 50),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(convo.contact.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
-                        const SizedBox(height: 3),
-                        Text(
-                          convo.lastMessage.text,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: muted,
-                            fontWeight: convo.unread ? FontWeight.w600 : FontWeight.w400,
-                          ),
-                        ),
-                      ],
+      body: StreamBuilder<List<ChatConversation>>(
+        stream: ChatRepository.watchMine(),
+        builder: (context, snapshot) {
+          final conversations = snapshot.data ?? const [];
+          if (conversations.isEmpty) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  'Aucune conversation pour l\'instant. Réserve ou publie un trajet pour en démarrer une.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: muted, fontSize: 13.5),
+                ),
+              ),
+            );
+          }
+          return ListView.separated(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            itemCount: conversations.length,
+            separatorBuilder: (_, _) => Divider(height: 1, indent: 84, color: Theme.of(context).dividerColor),
+            itemBuilder: (context, i) {
+              final convo = conversations[i];
+              return InkWell(
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => ChatScreen(
+                      conversationId: convo.id,
+                      contactName: convo.otherName,
+                      otherUid: convo.otherUid,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  child: Row(
                     children: [
-                      Text(_time(convo.lastMessage.time), style: TextStyle(fontSize: 11.5, color: muted)),
-                      const SizedBox(height: 8),
-                      if (convo.unread)
-                        Container(
-                          width: 9,
-                          height: 9,
-                          decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                      DriverAvatar(name: convo.otherName, size: 50),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(convo.otherName, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                            const SizedBox(height: 3),
+                            Text(
+                              convo.lastMessage.isEmpty ? 'Conversation démarrée' : convo.lastMessage,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontSize: 13, color: muted),
+                            ),
+                          ],
                         ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(_time(convo.lastMessageAt), style: TextStyle(fontSize: 11.5, color: muted)),
                     ],
                   ),
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           );
         },
       ),

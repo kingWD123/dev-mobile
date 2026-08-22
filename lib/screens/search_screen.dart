@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import '../data/senegal_regions.dart';
+import '../services/ride_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/promo_banner.dart';
+import '../widgets/region_picker_sheet.dart';
 import 'notifications_screen.dart';
 import 'results_screen.dart';
+import 'ride_detail_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -12,17 +16,27 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  final fromController = TextEditingController(text: 'Abidjan, Plateau');
-  final toController = TextEditingController(text: 'Yamoussoukro');
+  SenegalRegion fromRegion = SenegalRegions.all[0];
+  SenegalRegion toRegion = SenegalRegions.all[1];
   DateTime selectedDate = DateTime.now();
   int passengers = 1;
 
   void _swap() {
-    final tmp = fromController.text;
     setState(() {
-      fromController.text = toController.text;
-      toController.text = tmp;
+      final tmp = fromRegion;
+      fromRegion = toRegion;
+      toRegion = tmp;
     });
+  }
+
+  Future<void> _pickFrom() async {
+    final picked = await pickSenegalRegion(context, title: 'Départ', current: fromRegion, disallow: toRegion);
+    if (picked != null) setState(() => fromRegion = picked);
+  }
+
+  Future<void> _pickTo() async {
+    final picked = await pickSenegalRegion(context, title: 'Arrivée', current: toRegion, disallow: fromRegion);
+    if (picked != null) setState(() => toRegion = picked);
   }
 
   Future<void> _pickDate() async {
@@ -79,8 +93,10 @@ class _SearchScreenState extends State<SearchScreen> {
           Text('Trouvez un trajet partagé en quelques secondes', style: TextStyle(fontSize: 13.5, color: muted)),
           const SizedBox(height: 24),
           _RouteCard(
-            fromController: fromController,
-            toController: toController,
+            fromRegion: fromRegion,
+            toRegion: toRegion,
+            onTapFrom: _pickFrom,
+            onTapTo: _pickTo,
             onSwap: _swap,
           ),
           const SizedBox(height: 14),
@@ -117,11 +133,17 @@ class _SearchScreenState extends State<SearchScreen> {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {
+                if (fromRegion == toRegion) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Choisis deux régions différentes')),
+                  );
+                  return;
+                }
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (_) => ResultsScreen(
-                      from: fromController.text,
-                      to: toController.text,
+                      from: fromRegion.name,
+                      to: toRegion.name,
                       date: selectedDate,
                     ),
                   ),
@@ -133,11 +155,9 @@ class _SearchScreenState extends State<SearchScreen> {
           const SizedBox(height: 24),
           const PromoBanner(),
           const SizedBox(height: 28),
-          Text('Trajets populaires', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: muted)),
+          Text('Publiés à l\'instant', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: muted)),
           const SizedBox(height: 10),
-          _PopularRoute(from: 'Abidjan', to: 'Yamoussoukro', price: '4 000 FCFA'),
-          _PopularRoute(from: 'Abidjan', to: 'Bouaké', price: '5 000 FCFA'),
-          _PopularRoute(from: 'Abidjan', to: 'San-Pédro', price: '6 000 FCFA'),
+          const _RecentlyPublished(),
         ],
       ),
     );
@@ -145,11 +165,19 @@ class _SearchScreenState extends State<SearchScreen> {
 }
 
 class _RouteCard extends StatelessWidget {
-  final TextEditingController fromController;
-  final TextEditingController toController;
+  final SenegalRegion fromRegion;
+  final SenegalRegion toRegion;
+  final VoidCallback onTapFrom;
+  final VoidCallback onTapTo;
   final VoidCallback onSwap;
 
-  const _RouteCard({required this.fromController, required this.toController, required this.onSwap});
+  const _RouteCard({
+    required this.fromRegion,
+    required this.toRegion,
+    required this.onTapFrom,
+    required this.onTapTo,
+    required this.onSwap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -173,27 +201,9 @@ class _RouteCard extends StatelessWidget {
           Expanded(
             child: Column(
               children: [
-                TextField(
-                  controller: fromController,
-                  decoration: const InputDecoration(
-                    hintText: 'Départ',
-                    border: InputBorder.none,
-                    isDense: true,
-                    contentPadding: EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-                ),
+                _RegionRow(value: fromRegion.name, onTap: onTapFrom),
                 Divider(height: 1, color: Theme.of(context).dividerColor),
-                TextField(
-                  controller: toController,
-                  decoration: const InputDecoration(
-                    hintText: 'Arrivée',
-                    border: InputBorder.none,
-                    isDense: true,
-                    contentPadding: EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-                ),
+                _RegionRow(value: toRegion.name, onTap: onTapTo),
               ],
             ),
           ),
@@ -202,6 +212,30 @@ class _RouteCard extends StatelessWidget {
             icon: const Icon(Icons.swap_vert, color: AppColors.primary),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _RegionRow extends StatelessWidget {
+  final String value;
+  final VoidCallback onTap;
+  const _RegionRow({required this.value, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+            ),
+            Icon(Icons.expand_more, size: 18, color: AppColors.muted(context)),
+          ],
+        ),
       ),
     );
   }
@@ -291,31 +325,54 @@ class _PassengerPickerState extends State<_PassengerPicker> {
   }
 }
 
-class _PopularRoute extends StatelessWidget {
-  final String from;
-  final String to;
-  final String price;
-  const _PopularRoute({required this.from, required this.to, required this.price});
+class _RecentlyPublished extends StatelessWidget {
+  const _RecentlyPublished();
 
   @override
   Widget build(BuildContext context) {
     final muted = AppColors.muted(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: AppColors.flatField(context),
-        child: Row(
-          children: [
-            const Icon(Icons.trending_up, size: 18, color: AppColors.primary),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text('$from → $to', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
-            ),
-            Text('dès $price', style: TextStyle(fontSize: 12.5, color: muted, fontWeight: FontWeight.w600)),
-          ],
-        ),
-      ),
+
+    return StreamBuilder<List<Ride>>(
+      stream: RideRepository.watchRecent(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Center(child: CircularProgressIndicator(strokeWidth: 2, color: muted)),
+          );
+        }
+        final rides = snapshot.data ?? [];
+        if (rides.isEmpty) {
+          return Text('Aucun trajet publié pour l\'instant. Publies-en un !', style: TextStyle(fontSize: 12.5, color: muted));
+        }
+        return Column(
+          children: rides
+              .map((r) => Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(14),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => RideDetailScreen(rideId: r.id)),
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        decoration: AppColors.flatField(context),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.bolt, size: 18, color: AppColors.primary),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text('${r.from} → ${r.to}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
+                            ),
+                            Text('${r.price.toInt()} FCFA', style: TextStyle(fontSize: 12.5, color: muted, fontWeight: FontWeight.w600)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ))
+              .toList(),
+        );
+      },
     );
   }
 }

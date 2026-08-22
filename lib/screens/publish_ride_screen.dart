@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
+import '../data/senegal_regions.dart';
+import '../services/auth_service.dart';
+import '../services/notification_repository.dart';
+import '../services/ride_repository.dart';
+import '../services/user_repository.dart';
 import '../theme/app_theme.dart';
+import '../widgets/region_picker_sheet.dart';
 
 class PublishRideScreen extends StatefulWidget {
   const PublishRideScreen({super.key});
@@ -9,13 +15,26 @@ class PublishRideScreen extends StatefulWidget {
 }
 
 class _PublishRideScreenState extends State<PublishRideScreen> {
-  final fromController = TextEditingController();
-  final toController = TextEditingController();
+  SenegalRegion? fromRegion;
+  SenegalRegion? toRegion;
   final priceController = TextEditingController();
+  final nameController = TextEditingController();
+  final carController = TextEditingController();
   DateTime date = DateTime.now();
   TimeOfDay time = TimeOfDay.now();
   int seats = 3;
   bool instantBooking = true;
+  bool publishing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    UserRepository.fetchProfile().then((profile) {
+      if (!mounted) return;
+      nameController.text = profile.name;
+      carController.text = profile.car;
+    });
+  }
 
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
@@ -32,6 +51,81 @@ class _PublishRideScreenState extends State<PublishRideScreen> {
     if (picked != null) setState(() => time = picked);
   }
 
+  Future<void> _pickFrom() async {
+    final picked = await pickSenegalRegion(context, title: 'Ville de départ', current: fromRegion, disallow: toRegion);
+    if (picked != null) setState(() => fromRegion = picked);
+  }
+
+  Future<void> _pickTo() async {
+    final picked = await pickSenegalRegion(context, title: 'Ville d\'arrivée', current: toRegion, disallow: fromRegion);
+    if (picked != null) setState(() => toRegion = picked);
+  }
+
+  Future<void> _publish() async {
+    final from = fromRegion;
+    final to = toRegion;
+    if (from == null || to == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Choisis la région de départ et d\'arrivée')),
+      );
+      return;
+    }
+    if (from == to) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Le départ et l\'arrivée doivent être différents')),
+      );
+      return;
+    }
+    if (nameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Renseigne ton nom, les passagers doivent savoir qui les conduit')),
+      );
+      return;
+    }
+
+    setState(() => publishing = true);
+    try {
+      await RideRepository.publish(
+        from: from.name,
+        to: to.name,
+        fromLatLng: from.latLng,
+        toLatLng: to.latLng,
+        departure: DateTime(date.year, date.month, date.day, time.hour, time.minute),
+        seats: seats,
+        price: double.tryParse(priceController.text.trim()) ?? 0,
+        instantBooking: instantBooking,
+        driverName: nameController.text.trim(),
+        driverCar: carController.text.trim(),
+      );
+      await UserRepository.update({'name': nameController.text.trim(), 'car': carController.text.trim()});
+      final myUid = AuthService.uid;
+      if (myUid != null) {
+        await NotificationRepository.notify(
+          forUid: myUid,
+          title: 'Trajet publié',
+          body: 'Votre trajet ${from.name} → ${to.name} est en ligne.',
+        );
+      }
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Trajet publié sur Firestore')),
+      );
+      setState(() {
+        fromRegion = null;
+        toRegion = null;
+      });
+      priceController.clear();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur : $e')),
+      );
+    } finally {
+      if (mounted) setState(() => publishing = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final muted = AppColors.muted(context);
@@ -41,10 +135,15 @@ class _PublishRideScreenState extends State<PublishRideScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
         children: [
-          _Label('Itinéraire'),
-          _FormField(controller: fromController, hint: 'Ville de départ', icon: Icons.trip_origin),
+          _Label('Vous'),
+          _FormField(controller: nameController, hint: 'Votre nom', icon: Icons.person_outline),
           const SizedBox(height: 10),
-          _FormField(controller: toController, hint: 'Ville d\'arrivée', icon: Icons.location_on_outlined),
+          _FormField(controller: carController, hint: 'Véhicule (ex : Toyota Corolla, gris)', icon: Icons.directions_car_outlined),
+          const SizedBox(height: 22),
+          _Label('Itinéraire (régions du Sénégal)'),
+          _TapField(icon: Icons.trip_origin, label: fromRegion?.name ?? 'Ville de départ', onTap: _pickFrom),
+          const SizedBox(height: 10),
+          _TapField(icon: Icons.location_on_outlined, label: toRegion?.name ?? 'Ville d\'arrivée', onTap: _pickTo),
           const SizedBox(height: 22),
           _Label('Date et heure'),
           Row(
@@ -136,12 +235,14 @@ class _PublishRideScreenState extends State<PublishRideScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Trajet publié (aperçu visuel uniquement)')),
-                );
-              },
-              child: const Text('Publier le trajet'),
+              onPressed: publishing ? null : _publish,
+              child: publishing
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
+                    )
+                  : const Text('Publier le trajet'),
             ),
           ),
         ],

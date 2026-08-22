@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/ride_models.dart';
+import '../services/ride_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/driver_avatar.dart';
 import 'ride_detail_screen.dart';
@@ -14,7 +14,6 @@ class ResultsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final muted = AppColors.muted(context);
-    final rides = mockRides;
 
     return Scaffold(
       appBar: AppBar(
@@ -22,60 +21,53 @@ class ResultsScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('$from → $to', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis),
-            Text('${rides.length} trajets disponibles', style: TextStyle(fontSize: 11.5, color: muted, fontWeight: FontWeight.w500)),
+            StreamBuilder<List<Ride>>(
+              stream: RideRepository.watchAll(),
+              builder: (context, snapshot) {
+                final count = _filter(snapshot.data ?? const []).length;
+                return Text('$count trajet${count > 1 ? 's' : ''} disponible${count > 1 ? 's' : ''}', style: TextStyle(fontSize: 11.5, color: muted, fontWeight: FontWeight.w500));
+              },
+            ),
           ],
         ),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
-            child: SizedBox(
-              height: 34,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: const [
-                  _FilterChip(label: 'Heure de départ', icon: Icons.access_time),
-                  SizedBox(width: 8),
-                  _FilterChip(label: 'Prix', icon: Icons.sell_outlined),
-                  SizedBox(width: 8),
-                  _FilterChip(label: 'Réservation instantanée', icon: Icons.flash_on_outlined),
-                ],
+      body: StreamBuilder<List<Ride>>(
+        stream: RideRepository.watchAll(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final rides = _filter(snapshot.data ?? const []);
+          if (rides.isEmpty) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  'Aucun trajet publié pour cet itinéraire pour l\'instant. Reviens plus tard ou publie le tien !',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: muted, fontSize: 13.5),
+                ),
               ),
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-              itemCount: rides.length,
-              itemBuilder: (context, i) => _RideCard(ride: rides[i]),
-            ),
-          ),
-        ],
+            );
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+            itemCount: rides.length,
+            itemBuilder: (context, i) => _RideCard(ride: rides[i]),
+          );
+        },
       ),
     );
   }
-}
 
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  const _FilterChip({required this.label, required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: AppColors.flatField(context, radius: 20),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: AppColors.muted(context)),
-          const SizedBox(width: 6),
-          Text(label, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
-        ],
-      ),
-    );
+  List<Ride> _filter(List<Ride> rides) {
+    final f = from.trim().toLowerCase();
+    final t = to.trim().toLowerCase();
+    return rides.where((r) {
+      final matchesFrom = f.isEmpty || r.from.toLowerCase().contains(f) || f.contains(r.from.toLowerCase());
+      final matchesTo = t.isEmpty || r.to.toLowerCase().contains(t) || t.contains(r.to.toLowerCase());
+      return matchesFrom && matchesTo;
+    }).toList();
   }
 }
 
@@ -90,10 +82,11 @@ class _RideCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final muted = AppColors.muted(context);
+    final arrival = ride.departure.add(ride.duration);
 
     return InkWell(
       onTap: () {
-        Navigator.of(context).push(MaterialPageRoute(builder: (_) => RideDetailScreen(ride: ride)));
+        Navigator.of(context).push(MaterialPageRoute(builder: (_) => RideDetailScreen(rideId: ride.id)));
       },
       borderRadius: BorderRadius.circular(20),
       child: Container(
@@ -125,7 +118,7 @@ class _RideCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                Text(_time(ride.departure.add(ride.duration)), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                Text(_time(arrival), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
               ],
             ),
             const SizedBox(height: 4),
@@ -144,30 +137,26 @@ class _RideCard extends StatelessWidget {
             const SizedBox(height: 12),
             Row(
               children: [
-                DriverAvatar(driver: ride.driver, size: 36),
+                DriverAvatar(name: ride.driverName, size: 36),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(ride.driver.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
+                      Text(ride.driverName, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
                       Row(
                         children: [
-                          const Icon(Icons.star, size: 12, color: AppColors.rating),
-                          const SizedBox(width: 3),
-                          Text('${ride.driver.rating}', style: TextStyle(fontSize: 11.5, color: muted)),
-                          const SizedBox(width: 8),
                           Icon(Icons.event_seat_outlined, size: 12, color: muted),
                           const SizedBox(width: 3),
-                          Text('${ride.seatsLeft} place${ride.seatsLeft > 1 ? 's' : ''}', style: TextStyle(fontSize: 11.5, color: muted)),
+                          Text('${ride.seats} place${ride.seats > 1 ? 's' : ''}', style: TextStyle(fontSize: 11.5, color: muted)),
                         ],
                       ),
                     ],
                   ),
                 ),
                 if (ride.instantBooking)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8),
+                  const Padding(
+                    padding: EdgeInsets.only(right: 8),
                     child: Icon(Icons.flash_on, size: 16, color: AppColors.primary),
                   ),
                 Text(

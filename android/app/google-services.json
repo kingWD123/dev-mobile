@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1054108980362",
+    "project_id": "covoiturage-dic2",
+    "storage_bucket": "covoiturage-dic2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1054108980362:android:51981b31e6dd4bc6ff0973",
+        "android_client_info": {
+          "package_name": "com.dic2.devmobile.covoiturage_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBRveQRlCk9rCgSVK1gbuwChLdgFxx76dU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
